@@ -1,3 +1,4 @@
+import { MaterialIcons } from "@expo/vector-icons";
 import { Drawer } from "expo-router/drawer";
 import React from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -9,42 +10,62 @@ export default function RootLayout() {
         screenOptions={{
           headerTitleAlign: "left",
           headerTintColor: "#000000",
-          headerStyle: {
-            backgroundColor: "#ffffff",
-          },
+          headerStyle: { backgroundColor: "#ffffff" },
           headerTitleStyle: {
             fontWeight: "900",
             fontSize: 22,
             color: "#000000",
-            marginLeft: 0,
+            marginLeft: 5,
           },
-          drawerActiveTintColor: "#1a73e8", // Blue text for active item
-          drawerActiveBackgroundColor: "#e8f0fe", // Light powder blue background for active item
+          drawerActiveTintColor: "#1a73e8",
+          drawerActiveBackgroundColor: "#e8f0fe",
           drawerInactiveTintColor: "#5f6368",
-          drawerStyle: {
-            width: "70%",
-            backgroundColor: "#ffffff",
-          },
+          drawerStyle: { width: "70%", backgroundColor: "#ffffff" },
           drawerLabelStyle: {
             fontSize: 18,
             fontWeight: "bold",
-            marginLeft: 10,
-            paddingVertical: 5, // Moved padding to the label so the background box wraps it perfectly
+            marginLeft: -10,
+            paddingVertical: 5,
           },
+
+          // FIX: Removed margins and border radius for a full-width background
           drawerItemStyle: {
-            borderRadius: 0, // Removes the round pill cuts
-            marginHorizontal: 0, // Forces edge-to-edge width
-            marginVertical: 0, // Removes gaps between options
+            borderRadius: 0,
+            marginHorizontal: 0,
+            marginVertical: 0,
+            paddingLeft: 0,
           },
         }}
       >
         <Drawer.Screen
           name="index"
-          options={{ title: "Notes", drawerLabel: "Notes" }}
+          options={{
+            title: "Notes",
+            drawerLabel: "Notes",
+            drawerIcon: ({ color }) => (
+              <MaterialIcons name="notes" size={24} color={color} />
+            ),
+          }}
         />
         <Drawer.Screen
           name="passwords"
-          options={{ title: "Passwords", drawerLabel: "Passwords" }}
+          options={{
+            title: "Passwords",
+            drawerLabel: "Passwords",
+            drawerIcon: ({ color }) => (
+              <MaterialIcons name="lock" size={24} color={color} />
+            ),
+          }}
+        />
+        <Drawer.Screen
+          name="trash"
+          options={{
+            title: "Trash",
+            drawerLabel: "Trash",
+            drawerIcon: ({ color }) => (
+              <MaterialIcons name="delete" size={24} color={color} />
+            ),
+          }}
         />
       </Drawer>
     </GestureHandlerRootView>
