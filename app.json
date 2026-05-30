@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "NotePassv2",
-    "slug": "NotePassv2",
+    "name": "NotePass",
+    "slug": "NotePass",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "notepassv2",
+    "scheme": "notepass",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -19,7 +19,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.silentlumiere.NotePass"
     },
     "web": {
       "output": "static",
@@ -38,11 +39,20 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "expo-font",
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "8350f09c-9bca-42fb-b813-7fa8bcf7c088"
+      }
+    },
+    "owner": "silentlumiere"
   }
 }
