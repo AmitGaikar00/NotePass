@@ -19,23 +19,24 @@ export default function PasswordCard({ item, onEdit, onDelete }) {
       activeOpacity={0.7}
     >
       <View style={styles.cardHeader}>
+        {/* Title now has the entire width */}
         <Text style={styles.cardTitle} numberOfLines={1}>
           {item.site}
         </Text>
-
-        <View style={styles.headerRight}>
-          <Text style={styles.dateText}>{formatDate(item.id)}</Text>
-          <TouchableOpacity
-            onPress={() => onDelete(item.id)}
-            style={styles.deleteBtn}
-          >
-            <MaterialIcons name="delete-outline" size={20} color="#ff3b30" />
-          </TouchableOpacity>
-        </View>
       </View>
 
-      {/* Displays only the username on the preview card layout */}
       <Text style={styles.cardBody}>User: {item.username}</Text>
+
+      {/* V3: Metadata moved to the bottom right */}
+      <View style={styles.cardFooter}>
+        <Text style={styles.dateText}>{formatDate(item.id)}</Text>
+        <TouchableOpacity
+          onPress={() => onDelete(item.id)}
+          style={styles.deleteBtn}
+        >
+          <MaterialIcons name="delete-outline" size={20} color="#ff3b30" />
+        </TouchableOpacity>
+      </View>
     </TouchableOpacity>
   );
 }
@@ -58,31 +59,21 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     marginBottom: 10,
   },
-  cardTitle: {
-    fontWeight: "800",
-    fontSize: 18,
-    color: "#202124",
-    flex: 1,
-    marginRight: 10,
-  },
-  headerRight: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  dateText: {
-    fontSize: 12,
-    color: "#5f6368",
-    fontWeight: "600",
-  },
-  deleteBtn: {
-    padding: 4,
-    marginLeft: 6,
-    marginRight: -4,
-  },
+  cardTitle: { fontWeight: "800", fontSize: 18, color: "#202124", flex: 1 },
   cardBody: {
     fontSize: 15,
     color: "#3c4043",
     fontWeight: "500",
     marginBottom: 2,
   },
+
+  // V3 Styles for the new bottom-right footer
+  cardFooter: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    marginTop: 10,
+  },
+  dateText: { fontSize: 12, color: "#5f6368", fontWeight: "600" },
+  deleteBtn: { padding: 4, marginLeft: 6, marginRight: -4 },
 });

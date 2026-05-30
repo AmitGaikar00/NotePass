@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -99,7 +100,6 @@ export default function PasswordsScreen() {
     setModalVisible(false);
   };
 
-  // FIX: Custom text label inside Alert notification box
   const copyToClipboard = async (text, fieldName) => {
     await Clipboard.setStringAsync(text);
     Alert.alert("Copied!", `${fieldName} copied to clipboard.`);
@@ -171,7 +171,6 @@ export default function PasswordsScreen() {
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContainer}
-        // FIX: Hooked up the card's onDelete icon parameter to your moveToTrash function
         renderItem={({ item }) => (
           <PasswordCard
             item={item}
@@ -193,7 +192,7 @@ export default function PasswordsScreen() {
         <SafeAreaView style={{ flex: 1, backgroundColor: "#e8f0fe" }}>
           <KeyboardAvoidingView
             style={styles.modalContainer}
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
           >
             <View style={styles.modalHeader}>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
@@ -225,76 +224,84 @@ export default function PasswordsScreen() {
               {editingId ? "Edit Password" : "New Password"}
             </Text>
 
-            <View style={styles.inputWrapper}>
-              <TextInput
-                style={[styles.modalInput, { outlineStyle: "none" } as any]}
-                placeholder="Site / App Name"
-                value={site}
-                onChangeText={setSite}
-                autoFocus={true}
-              />
-            </View>
+            {/* V3: Wrapped inputs in ScrollView */}
+            <ScrollView
+              style={{ flex: 1 }}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              <View style={styles.inputWrapper}>
+                <TextInput
+                  style={[styles.modalInput, { outlineStyle: "none" } as any]}
+                  placeholder="Site / App Name"
+                  value={site}
+                  onChangeText={setSite}
+                  autoFocus={true}
+                />
+              </View>
 
-            {/* FIX: Turned Username field into a layout row containing its own clipboard action button */}
-            <View style={styles.passwordFormRow}>
-              <TextInput
-                style={[
-                  styles.modalInput,
-                  { flex: 1, outlineStyle: "none" } as any,
-                ]}
-                placeholder="Username / Email"
-                value={username}
-                onChangeText={setUsername}
-                autoCapitalize="none"
-              />
-              {username.length > 0 && (
+              <View style={styles.passwordFormRow}>
+                <TextInput
+                  style={[
+                    styles.modalInput,
+                    { flex: 1, outlineStyle: "none" } as any,
+                  ]}
+                  placeholder="Username / Email"
+                  value={username}
+                  onChangeText={setUsername}
+                  autoCapitalize="none"
+                />
+                {username.length > 0 && (
+                  <TouchableOpacity
+                    onPress={() => copyToClipboard(username, "Username")}
+                    style={styles.iconBtn}
+                  >
+                    <MaterialIcons
+                      name="content-copy"
+                      size={22}
+                      color="#5f6368"
+                    />
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              <View style={styles.passwordFormRow}>
+                <TextInput
+                  style={[
+                    styles.modalInput,
+                    { flex: 1, outlineStyle: "none" } as any,
+                  ]}
+                  placeholder="Password"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!isFormPasswordVisible}
+                />
+
+                {password.length > 0 && (
+                  <TouchableOpacity
+                    onPress={() => copyToClipboard(password, "Password")}
+                    style={styles.iconBtn}
+                  >
+                    <MaterialIcons
+                      name="content-copy"
+                      size={22}
+                      color="#5f6368"
+                    />
+                  </TouchableOpacity>
+                )}
+
                 <TouchableOpacity
-                  onPress={() => copyToClipboard(username, "Username")}
-                  style={styles.iconBtn}
+                  onPress={() =>
+                    setIsFormPasswordVisible(!isFormPasswordVisible)
+                  }
+                  style={styles.formToggleBtn}
                 >
-                  <MaterialIcons
-                    name="content-copy"
-                    size={22}
-                    color="#5f6368"
-                  />
+                  <Text style={styles.formToggleText}>
+                    {isFormPasswordVisible ? "Hide" : "Show"}
+                  </Text>
                 </TouchableOpacity>
-              )}
-            </View>
-
-            <View style={styles.passwordFormRow}>
-              <TextInput
-                style={[
-                  styles.modalInput,
-                  { flex: 1, outlineStyle: "none" } as any,
-                ]}
-                placeholder="Password"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!isFormPasswordVisible}
-              />
-
-              {password.length > 0 && (
-                <TouchableOpacity
-                  onPress={() => copyToClipboard(password, "Password")}
-                  style={styles.iconBtn}
-                >
-                  <MaterialIcons
-                    name="content-copy"
-                    size={22}
-                    color="#5f6368"
-                  />
-                </TouchableOpacity>
-              )}
-
-              <TouchableOpacity
-                onPress={() => setIsFormPasswordVisible(!isFormPasswordVisible)}
-                style={styles.formToggleBtn}
-              >
-                <Text style={styles.formToggleText}>
-                  {isFormPasswordVisible ? "Hide" : "Show"}
-                </Text>
-              </TouchableOpacity>
-            </View>
+              </View>
+            </ScrollView>
           </KeyboardAvoidingView>
         </SafeAreaView>
       </Modal>
@@ -303,7 +310,7 @@ export default function PasswordsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#ffffff" },
+  container: { flex: 1, backgroundColor: "#ffffff", paddingTop: 10 },
   controlsHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -342,9 +349,11 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, fontSize: 16, color: "#202124", height: "100%" },
   clearBtn: { padding: 5 },
   listContainer: { paddingBottom: 80, paddingHorizontal: 16 },
+
+  // V3: FAB moved upwards
   fab: {
     position: "absolute",
-    bottom: 20,
+    bottom: 40,
     right: 20,
     backgroundColor: "#1a73e8",
     width: 60,
@@ -354,6 +363,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     elevation: 5,
   },
+
   modalContainer: { flex: 1, padding: 20 },
   modalHeader: {
     flexDirection: "row",

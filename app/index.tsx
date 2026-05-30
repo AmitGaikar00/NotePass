@@ -191,7 +191,6 @@ export default function NotesScreen() {
         </View>
       </View>
 
-      {/* FIX: The True Masonry Layout Implementation */}
       {viewMode === "list" ? (
         <FlatList
           key="L"
@@ -214,7 +213,6 @@ export default function NotesScreen() {
           contentContainerStyle={styles.listContainer}
         >
           <View style={styles.masonryContainer}>
-            {/* Left Column */}
             <View style={styles.masonryColumn}>
               {displayNotes
                 .filter((_, index) => index % 2 === 0)
@@ -228,8 +226,6 @@ export default function NotesScreen() {
                   />
                 ))}
             </View>
-
-            {/* Right Column */}
             <View style={styles.masonryColumn}>
               {displayNotes
                 .filter((_, index) => index % 2 !== 0)
@@ -259,7 +255,7 @@ export default function NotesScreen() {
         <SafeAreaView style={{ flex: 1, backgroundColor: selectedColor }}>
           <KeyboardAvoidingView
             style={styles.modalContainer}
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
           >
             <View style={styles.modalHeader}>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
@@ -294,23 +290,35 @@ export default function NotesScreen() {
               </View>
             </View>
 
-            <TextInput
-              style={[styles.modalTitleInput, { outlineStyle: "none" } as any]}
-              placeholder="Title"
-              value={title}
-              onChangeText={setTitle}
-              autoFocus={true}
-            />
-            <TextInput
-              style={[
-                styles.modalContentInput,
-                { outlineStyle: "none" } as any,
-              ]}
-              placeholder="Note details..."
-              value={content}
-              onChangeText={setContent}
-              multiline
-            />
+            {/* V3: Wrapped inputs in ScrollView to fix the static screen keyboard bug */}
+            <ScrollView
+              style={{ flex: 1 }}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              <TextInput
+                style={[
+                  styles.modalTitleInput,
+                  { outlineStyle: "none" } as any,
+                ]}
+                placeholder="Title"
+                value={title}
+                onChangeText={setTitle}
+                autoFocus={true}
+              />
+
+              {/* V3: Content input now expands using minHeight instead of flex: 1 */}
+              <TextInput
+                style={[
+                  styles.modalContentInput,
+                  { outlineStyle: "none" } as any,
+                ]}
+                placeholder="Note details..."
+                value={content}
+                onChangeText={setContent}
+                multiline
+              />
+            </ScrollView>
 
             <View style={styles.colorPickerContainer}>
               {NOTE_COLORS.map((color) => (
@@ -378,14 +386,13 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, fontSize: 16, color: "#202124", height: "100%" },
   clearBtn: { padding: 5 },
   listContainer: { paddingBottom: 80, paddingHorizontal: 16 },
-
-  // FIX: Masonry Styles added here
   masonryContainer: { flexDirection: "row", justifyContent: "space-between" },
   masonryColumn: { width: "48%" },
 
+  // V3: FAB moved upwards
   fab: {
     position: "absolute",
-    bottom: 20,
+    bottom: 40,
     right: 20,
     backgroundColor: "#1a73e8",
     width: 60,
@@ -395,6 +402,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     elevation: 5,
   },
+
   modalContainer: { flex: 1, padding: 20 },
   modalHeader: {
     flexDirection: "row",
@@ -430,14 +438,17 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     paddingVertical: 5,
   },
+
+  // V3: Changed flex to minHeight so the ScrollView can measure and scroll it correctly
   modalContentInput: {
     fontSize: 18,
     color: "#202124",
-    flex: 1,
+    minHeight: 300,
     textAlignVertical: "top",
     paddingVertical: 5,
     fontWeight: "500",
   },
+
   colorPickerContainer: {
     flexDirection: "row",
     justifyContent: "space-around",

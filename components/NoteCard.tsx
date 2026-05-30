@@ -25,33 +25,35 @@ export default function NoteCard({ item, onEdit, onDelete, viewMode }) {
       activeOpacity={0.7}
     >
       <View style={styles.cardHeader}>
+        {/* Title now has the entire width of the card */}
         <Text style={styles.cardTitle} numberOfLines={isGrid ? 2 : 1}>
           {item.title}
         </Text>
-
-        <View style={styles.headerRight}>
-          {item.isPinned && (
-            <MaterialIcons
-              name="push-pin"
-              size={16}
-              color="#1a73e8"
-              style={styles.iconSpacing}
-            />
-          )}
-          <Text style={styles.dateText}>{formatDate(item.id)}</Text>
-          <TouchableOpacity
-            onPress={() => onDelete(item.id)}
-            style={styles.deleteBtn}
-          >
-            <MaterialIcons name="delete-outline" size={20} color="#ff3b30" />
-          </TouchableOpacity>
-        </View>
       </View>
 
-      {/* FIX: Set numberOfLines to undefined in grid mode so it expands to fit all content! */}
-      <Text style={styles.cardBody} numberOfLines={isGrid ? undefined : 4}>
+      {/* V3: Fixed masonry height - limits to 8 lines instead of infinite */}
+      <Text style={styles.cardBody} numberOfLines={isGrid ? 8 : 4}>
         {item.content}
       </Text>
+
+      {/* V3: Metadata moved to the bottom right */}
+      <View style={styles.cardFooter}>
+        {item.isPinned && (
+          <MaterialIcons
+            name="push-pin"
+            size={16}
+            color="#1a73e8"
+            style={styles.iconSpacing}
+          />
+        )}
+        <Text style={styles.dateText}>{formatDate(item.id)}</Text>
+        <TouchableOpacity
+          onPress={() => onDelete(item.id)}
+          style={styles.deleteBtn}
+        >
+          <MaterialIcons name="delete-outline" size={20} color="#ff3b30" />
+        </TouchableOpacity>
+      </View>
     </TouchableOpacity>
   );
 }
@@ -68,31 +70,29 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     width: "100%",
   },
-
-  // FIX: In Masonry layout, the column handles the width, so the card just needs to take 100% of its column
   cardGrid: { width: "100%" },
-
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
     marginBottom: 8,
   },
-  cardTitle: {
-    fontWeight: "800",
-    fontSize: 18,
-    color: "#202124",
-    flex: 1,
-    marginRight: 5,
-  },
-  headerRight: { flexDirection: "row", alignItems: "center" },
-  iconSpacing: { marginRight: 5 },
-  dateText: { fontSize: 12, color: "#5f6368", fontWeight: "600" },
-  deleteBtn: { padding: 4, marginLeft: 4, marginRight: -4 },
+  cardTitle: { fontWeight: "800", fontSize: 18, color: "#202124", flex: 1 },
   cardBody: {
     fontSize: 15,
     color: "#3c4043",
     lineHeight: 22,
     fontWeight: "500",
   },
+
+  // V3 Styles for the new bottom-right footer
+  cardFooter: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    marginTop: 12,
+  },
+  iconSpacing: { marginRight: 6 },
+  dateText: { fontSize: 12, color: "#5f6368", fontWeight: "600" },
+  deleteBtn: { padding: 4, marginLeft: 6, marginRight: -4 },
 });
