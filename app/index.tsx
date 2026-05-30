@@ -37,7 +37,7 @@ export default function NotesScreen() {
   const [editingId, setEditingId] = useState(null);
   const [isPinned, setIsPinned] = useState(false);
 
-  const [sortBy, setSortBy] = useState("title");
+  const [sortBy, setSortBy] = useState("date");
   const [viewMode, setViewMode] = useState("list");
 
   useFocusEffect(
@@ -134,19 +134,6 @@ export default function NotesScreen() {
       <View style={styles.controlsHeader}>
         <View style={styles.sortGroup}>
           <TouchableOpacity
-            onPress={() => setSortBy("title")}
-            style={[styles.sortBtn, sortBy === "title" && styles.sortBtnActive]}
-          >
-            <Text
-              style={[
-                styles.sortText,
-                sortBy === "title" && styles.sortTextActive,
-              ]}
-            >
-              Title
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
             onPress={() => setSortBy("date")}
             style={[styles.sortBtn, sortBy === "date" && styles.sortBtnActive]}
           >
@@ -157,6 +144,19 @@ export default function NotesScreen() {
               ]}
             >
               Date
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setSortBy("title")}
+            style={[styles.sortBtn, sortBy === "title" && styles.sortBtnActive]}
+          >
+            <Text
+              style={[
+                styles.sortText,
+                sortBy === "title" && styles.sortTextActive,
+              ]}
+            >
+              Title
             </Text>
           </TouchableOpacity>
         </View>
@@ -392,8 +392,8 @@ const styles = StyleSheet.create({
   // V3: FAB moved upwards
   fab: {
     position: "absolute",
-    bottom: 40,
-    right: 20,
+    bottom: 60,
+    right: 30,
     backgroundColor: "#1a73e8",
     width: 60,
     height: 60,

@@ -29,7 +29,7 @@ export default function PasswordsScreen() {
   const [isModalVisible, setModalVisible] = useState(false);
   const [isFormPasswordVisible, setIsFormPasswordVisible] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [sortBy, setSortBy] = useState("site");
+  const [sortBy, setSortBy] = useState("date");
 
   useFocusEffect(
     useCallback(() => {
@@ -120,19 +120,6 @@ export default function PasswordsScreen() {
       <View style={styles.controlsHeader}>
         <View style={styles.sortGroup}>
           <TouchableOpacity
-            onPress={() => setSortBy("site")}
-            style={[styles.sortBtn, sortBy === "site" && styles.sortBtnActive]}
-          >
-            <Text
-              style={[
-                styles.sortText,
-                sortBy === "site" && styles.sortTextActive,
-              ]}
-            >
-              Site
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
             onPress={() => setSortBy("date")}
             style={[styles.sortBtn, sortBy === "date" && styles.sortBtnActive]}
           >
@@ -143,6 +130,19 @@ export default function PasswordsScreen() {
               ]}
             >
               Date
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setSortBy("site")}
+            style={[styles.sortBtn, sortBy === "site" && styles.sortBtnActive]}
+          >
+            <Text
+              style={[
+                styles.sortText,
+                sortBy === "site" && styles.sortTextActive,
+              ]}
+            >
+              Site
             </Text>
           </TouchableOpacity>
         </View>
@@ -353,8 +353,8 @@ const styles = StyleSheet.create({
   // V3: FAB moved upwards
   fab: {
     position: "absolute",
-    bottom: 40,
-    right: 20,
+    bottom: 60,
+    right: 30,
     backgroundColor: "#1a73e8",
     width: 60,
     height: 60,
