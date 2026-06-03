@@ -186,6 +186,7 @@ export default function PasswordsScreen() {
 
       <Modal
         visible={isModalVisible}
+        onRequestClose={() => setModalVisible(false)}
         animationType="slide"
         presentationStyle="pageSheet"
       >
@@ -196,7 +197,8 @@ export default function PasswordsScreen() {
           >
             <View style={styles.modalHeader}>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Text style={styles.cancelText}>Cancel</Text>
+                {/* <Text style={styles.cancelText}>Cancel</Text> */}
+                <MaterialIcons name="arrow-back" size={26} color="#202124" />
               </TouchableOpacity>
               <View style={styles.headerRightControls}>
                 {editingId && (

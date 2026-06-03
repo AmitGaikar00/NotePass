@@ -1,6 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function NoteCard({ item, onEdit, onDelete, viewMode }) {
   const formatDate = (timestamp) => {
@@ -13,6 +13,7 @@ export default function NoteCard({ item, onEdit, onDelete, viewMode }) {
   };
 
   const isGrid = viewMode === "grid";
+  const textColor = item.textColor || "#202124";
 
   return (
     <TouchableOpacity
@@ -24,19 +25,65 @@ export default function NoteCard({ item, onEdit, onDelete, viewMode }) {
       onPress={() => onEdit(item)}
       activeOpacity={0.7}
     >
+      {item.images && item.images.length > 0 && (
+        <Image source={{ uri: item.images[0] }} style={styles.cardCoverImage} />
+      )}
+
       <View style={styles.cardHeader}>
-        {/* Title now has the entire width of the card */}
-        <Text style={styles.cardTitle} numberOfLines={isGrid ? 2 : 1}>
+        <Text
+          style={[styles.cardTitle, { color: textColor }]}
+          numberOfLines={isGrid ? 2 : 1}
+        >
           {item.title}
         </Text>
       </View>
 
-      {/* V3: Fixed masonry height - limits to 8 lines instead of infinite */}
-      <Text style={styles.cardBody} numberOfLines={isGrid ? 8 : 4}>
-        {item.content}
-      </Text>
+      {item.isChecklistMode && item.checklist ? (
+        <View style={styles.checklistPreview}>
+          {item.checklist.slice(0, 4).map((c) => (
+            <View key={c.id} style={styles.checklistItemPreview}>
+              <MaterialIcons
+                name={c.isChecked ? "check-box" : "check-box-outline-blank"}
+                size={18}
+                color={textColor}
+                style={{ opacity: 0.7 }}
+              />
 
-      {/* V3: Metadata moved to the bottom right */}
+              {/* FIX: Added 'flex: 1' to the text array so it truncates cleanly inside the grid! */}
+              <Text
+                style={[
+                  styles.cardBody,
+                  { color: textColor, marginLeft: 6, flex: 1 },
+                  c.isChecked && styles.checkedTextPreview,
+                ]}
+                numberOfLines={1}
+              >
+                {c.text || "Empty item"}
+              </Text>
+            </View>
+          ))}
+          {item.checklist.length > 4 && (
+            <Text style={[styles.moreItemsText, { color: textColor }]}>
+              + {item.checklist.length - 4} more items
+            </Text>
+          )}
+        </View>
+      ) : (
+        <Text
+          style={[
+            styles.cardBody,
+            {
+              color: textColor,
+              fontWeight: item.isBold ? "bold" : "normal",
+              fontStyle: item.isItalic ? "italic" : "normal",
+            },
+          ]}
+          numberOfLines={isGrid ? 8 : 4}
+        >
+          {item.content}
+        </Text>
+      )}
+
       <View style={styles.cardFooter}>
         {item.isPinned && (
           <MaterialIcons
@@ -69,23 +116,41 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     shadowOffset: { width: 0, height: 1 },
     width: "100%",
+    overflow: "hidden",
   },
   cardGrid: { width: "100%" },
+  cardCoverImage: {
+    width: "115%",
+    height: 120,
+    marginHorizontal: -16,
+    marginTop: -16,
+    marginBottom: 12,
+    resizeMode: "cover",
+  },
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
     marginBottom: 8,
   },
-  cardTitle: { fontWeight: "800", fontSize: 18, color: "#202124", flex: 1 },
-  cardBody: {
-    fontSize: 15,
-    color: "#3c4043",
-    lineHeight: 22,
-    fontWeight: "500",
+  cardTitle: { fontWeight: "800", fontSize: 18, flex: 1 },
+  cardBody: { fontSize: 15, lineHeight: 22 },
+
+  // Checklist Preview Layout fixes
+  checklistPreview: { marginTop: 2 },
+  checklistItemPreview: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  checkedTextPreview: { textDecorationLine: "line-through", opacity: 0.5 },
+  moreItemsText: {
+    fontSize: 12,
+    fontStyle: "italic",
+    opacity: 0.7,
+    marginTop: 4,
   },
 
-  // V3 Styles for the new bottom-right footer
   cardFooter: {
     flexDirection: "row",
     justifyContent: "flex-end",
