@@ -1,0 +1,33 @@
+NotePass - Release Notes & Changelog
+
+V4.0 - The Rich Editor Update (Current)
+  * Native Rich Editor Toolbar: Replaced basic text inputs with a dynamic, native bottom toolbar.
+  * Image Support: Integrated expo-image-picker to allow users to attach multiple photos inline with their notes. Images render as beautiful cover thumbnails on the home screen grid.
+  * Interactive Checklists: Added a one-tap toggle to convert standard paragraphs into interactive, checkable to-do lists.
+  * Custom Styling Palettes: 
+      - Added a Background Color picker with 7 pastel themes.
+      - Added a Text Color picker with 7 high-contrast options.
+      - Implemented smart auto-dismissing (palettes close instantly when typing begins).
+  * Hardware Navigation: Added Android hardware back-button and swipe-gesture support (onRequestClose) to all modals for native OS feel.
+
+V3.1 - The Secure Vault Update
+  * Military-Grade Encryption: Upgraded standard JSON backups with crypto-js AES encryption. Data in transit is now completely unreadable without the Master Password.
+  * Proprietary File Format: Changed the backup extension from .json to .notepass and set the MIME type to application/octet-stream to prevent accidental file corruption from text editors.
+  * Smart Data Merging: Importing a backup no longer wipes the phone. The app intelligently scans IDs and only merges in missing data, preventing duplicates and protecting current local data.
+  * Export Routing: Added a native Action Alert letting users choose between saving the vault directly to a local device folder or sharing it via apps (Email, WhatsApp, etc.).
+
+V3.0 - Backup & Restore
+  * Data Portability: Added the ability to package all Notes and Passwords into a single standard .json file for manual safekeeping.
+  * Importing: Added expo-document-picker to allow users to upload their previous backups back into the app.
+
+V2.0 - Security & Organization
+  * Secure Passwords: Introduced a dedicated Passwords tab utilizing Expo SecureStore (Android Keystore/iOS Keychain) to physically encrypt passwords at rest.
+  * Drawer Navigation: Implemented a side-drawer menu to seamlessly switch between Notes, Passwords, and Settings.
+  * Trash System: Notes and passwords are no longer permanently deleted immediately. They are moved to a dedicated Trash view for safe recovery.
+  * Pinning: Added the ability to pin important notes to the absolute top of the grid/list.
+
+V1.0 - Core Engine
+  * Foundation: Built standard Note CRUD operations (Create, Read, Update, Delete) using React Native.
+  * Local Storage: Integrated @react-native-async-storage/async-storage for fast, offline-first data persistence.
+  * Dynamic Views: Added a toggle to switch between a standard vertical List View and a staggered Masonry Grid View.
+  * Search & Sort: Added real-time text filtering for note titles and content, alongside alphabetical and date-based sorting.
