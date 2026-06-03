@@ -1,70 +1,23 @@
 import { MaterialIcons } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
+import { useFocusEffect } from "expo-router";
 import * as SecureStore from "expo-secure-store";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   Alert,
   FlatList,
   KeyboardAvoidingView,
   Modal,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context"; // Updated Import
-
-const PasswordCard = ({ item, onEdit, onDelete }) => {
-  const [isVisible, setIsVisible] = useState(false);
-
-  const formatDate = (timestamp) => {
-    if (!timestamp) return "";
-    const d = new Date(parseInt(timestamp));
-    return d.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
-
-  return (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => onEdit(item)}
-      activeOpacity={0.7}
-    >
-      <View style={styles.cardHeader}>
-        <Text style={styles.cardTitle} numberOfLines={1}>
-          {item.site}
-        </Text>
-        <View style={styles.cardHeaderRight}>
-          <Text style={styles.dateText}>{formatDate(item.id)}</Text>
-          <TouchableOpacity
-            onPress={() => onDelete(item.id)}
-            style={styles.iconButton}
-          >
-            <MaterialIcons name="delete-outline" size={22} color="#ff3b30" />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <Text style={styles.cardBody}>User: {item.username}</Text>
-
-      <View style={styles.passwordRow}>
-        <Text style={styles.cardBody}>
-          Pass: {isVisible ? item.password : "••••••••••••"}
-        </Text>
-        <TouchableOpacity
-          onPress={() => setIsVisible(!isVisible)}
-          style={styles.toggleBtn}
-        >
-          <Text style={styles.toggleText}>{isVisible ? "Hide" : "View"}</Text>
-        </TouchableOpacity>
-      </View>
-    </TouchableOpacity>
-  );
-};
+import { SafeAreaView } from "react-native-safe-area-context";
+import PasswordCard from "../components/PasswordCard";
 
 export default function PasswordsScreen() {
   const [passwords, setPasswords] = useState([]);
@@ -76,17 +29,20 @@ export default function PasswordsScreen() {
   const [isModalVisible, setModalVisible] = useState(false);
   const [isFormPasswordVisible, setIsFormPasswordVisible] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [sortBy, setSortBy] = useState("date");
 
-  useEffect(() => {
-    loadPasswords();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadPasswords();
+    }, []),
+  );
 
   const loadPasswords = async () => {
     try {
       const storedData = await SecureStore.getItemAsync("my_passwords");
       if (storedData) setPasswords(JSON.parse(storedData));
     } catch (e) {
-      console.log("Error loading passwords", e);
+      console.log("Error", e);
     }
   };
 
@@ -109,52 +65,95 @@ export default function PasswordsScreen() {
   };
 
   const savePassword = async () => {
-    if (!site || !username || !password) {
-      Alert.alert("Error", "Please fill all fields.");
-      return;
-    }
-
+    if (!site || !username || !password) return;
     let updatedPasswords = editingId
       ? passwords.map((p) =>
           p.id === editingId ? { ...p, site, username, password } : p,
         )
-      : [{ id: Date.now().toString(), site, username, password }, ...passwords];
+      : [
+          {
+            id: Date.now().toString(),
+            site,
+            username,
+            password,
+            isTrashed: false,
+          },
+          ...passwords,
+        ];
 
     setPasswords(updatedPasswords);
-    setSite("");
-    setUsername("");
-    setPassword("");
-    setEditingId(null);
-    setIsFormPasswordVisible(false);
     setModalVisible(false);
-
     await SecureStore.setItemAsync(
       "my_passwords",
       JSON.stringify(updatedPasswords),
     );
   };
 
-  const deletePassword = async (id) => {
-    const filtered = passwords.filter((item) => item.id !== id);
-    setPasswords(filtered);
-    await SecureStore.setItemAsync("my_passwords", JSON.stringify(filtered));
+  const moveToTrash = async (id) => {
+    const updated = passwords.map((p) =>
+      p.id === id
+        ? { ...p, isTrashed: true, deletedAt: Date.now().toString() }
+        : p,
+    );
+    setPasswords(updated);
+    await SecureStore.setItemAsync("my_passwords", JSON.stringify(updated));
+    setModalVisible(false);
   };
 
-  const filteredPasswords = passwords.filter((item) =>
-    item.site.toLowerCase().includes(searchQuery.toLowerCase()),
+  const copyToClipboard = async (text, fieldName) => {
+    await Clipboard.setStringAsync(text);
+    Alert.alert("Copied!", `${fieldName} copied to clipboard.`);
+  };
+
+  let displayPasswords = passwords.filter(
+    (p) =>
+      !p.isTrashed && p.site.toLowerCase().includes(searchQuery.toLowerCase()),
   );
+
+  displayPasswords.sort((a, b) => {
+    if (sortBy === "site") return a.site.localeCompare(b.site);
+    return b.id - a.id;
+  });
 
   return (
     <SafeAreaView style={styles.container}>
+      <View style={styles.controlsHeader}>
+        <View style={styles.sortGroup}>
+          <TouchableOpacity
+            onPress={() => setSortBy("date")}
+            style={[styles.sortBtn, sortBy === "date" && styles.sortBtnActive]}
+          >
+            <Text
+              style={[
+                styles.sortText,
+                sortBy === "date" && styles.sortTextActive,
+              ]}
+            >
+              Date
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setSortBy("site")}
+            style={[styles.sortBtn, sortBy === "site" && styles.sortBtnActive]}
+          >
+            <Text
+              style={[
+                styles.sortText,
+                sortBy === "site" && styles.sortTextActive,
+              ]}
+            >
+              Site
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
       <View style={styles.searchContainer}>
         <TextInput
           style={[styles.searchInput, { outlineStyle: "none" } as any]}
           placeholder="Search sites..."
-          placeholderTextColor="#5f6368"
           value={searchQuery}
           onChangeText={setSearchQuery}
-          underlineColorAndroid="transparent"
-          selectionColor="#1a73e8"
         />
         {searchQuery.length > 0 && (
           <TouchableOpacity
@@ -168,7 +167,7 @@ export default function PasswordsScreen() {
       </View>
 
       <FlatList
-        data={filteredPasswords}
+        data={displayPasswords}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContainer}
@@ -176,7 +175,7 @@ export default function PasswordsScreen() {
           <PasswordCard
             item={item}
             onEdit={openEditPasswordModal}
-            onDelete={deletePassword}
+            onDelete={moveToTrash}
           />
         )}
       />
@@ -187,25 +186,24 @@ export default function PasswordsScreen() {
 
       <Modal
         visible={isModalVisible}
+        onRequestClose={() => setModalVisible(false)}
         animationType="slide"
         presentationStyle="pageSheet"
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: "#e8f0fe" }}>
           <KeyboardAvoidingView
             style={styles.modalContainer}
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
           >
             <View style={styles.modalHeader}>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Text style={styles.cancelText}>Cancel</Text>
+                {/* <Text style={styles.cancelText}>Cancel</Text> */}
+                <MaterialIcons name="arrow-back" size={26} color="#202124" />
               </TouchableOpacity>
               <View style={styles.headerRightControls}>
                 {editingId && (
                   <TouchableOpacity
-                    onPress={() => {
-                      deletePassword(editingId);
-                      setModalVisible(false);
-                    }}
+                    onPress={() => moveToTrash(editingId)}
                     style={styles.modalDeleteBtn}
                   >
                     <MaterialIcons
@@ -228,55 +226,84 @@ export default function PasswordsScreen() {
               {editingId ? "Edit Password" : "New Password"}
             </Text>
 
-            <View style={styles.inputWrapper}>
-              <TextInput
-                style={[styles.modalInput, { outlineStyle: "none" } as any]}
-                placeholder="Site / App Name"
-                placeholderTextColor="#5f6368"
-                value={site}
-                onChangeText={setSite}
-                autoFocus={true}
-                underlineColorAndroid="transparent"
-                selectionColor="#1a73e8"
-              />
-            </View>
+            {/* V3: Wrapped inputs in ScrollView */}
+            <ScrollView
+              style={{ flex: 1 }}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              <View style={styles.inputWrapper}>
+                <TextInput
+                  style={[styles.modalInput, { outlineStyle: "none" } as any]}
+                  placeholder="Site / App Name"
+                  value={site}
+                  onChangeText={setSite}
+                  autoFocus={true}
+                />
+              </View>
 
-            <View style={styles.inputWrapper}>
-              <TextInput
-                style={[styles.modalInput, { outlineStyle: "none" } as any]}
-                placeholder="Username / Email"
-                placeholderTextColor="#5f6368"
-                value={username}
-                onChangeText={setUsername}
-                autoCapitalize="none"
-                underlineColorAndroid="transparent"
-                selectionColor="#1a73e8"
-              />
-            </View>
+              <View style={styles.passwordFormRow}>
+                <TextInput
+                  style={[
+                    styles.modalInput,
+                    { flex: 1, outlineStyle: "none" } as any,
+                  ]}
+                  placeholder="Username / Email"
+                  value={username}
+                  onChangeText={setUsername}
+                  autoCapitalize="none"
+                />
+                {username.length > 0 && (
+                  <TouchableOpacity
+                    onPress={() => copyToClipboard(username, "Username")}
+                    style={styles.iconBtn}
+                  >
+                    <MaterialIcons
+                      name="content-copy"
+                      size={22}
+                      color="#5f6368"
+                    />
+                  </TouchableOpacity>
+                )}
+              </View>
 
-            <View style={styles.passwordFormRow}>
-              <TextInput
-                style={[
-                  styles.modalInput,
-                  { flex: 1, outlineStyle: "none" } as any,
-                ]}
-                placeholder="Password"
-                placeholderTextColor="#5f6368"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!isFormPasswordVisible}
-                underlineColorAndroid="transparent"
-                selectionColor="#1a73e8"
-              />
-              <TouchableOpacity
-                onPress={() => setIsFormPasswordVisible(!isFormPasswordVisible)}
-                style={styles.formToggleBtn}
-              >
-                <Text style={styles.formToggleText}>
-                  {isFormPasswordVisible ? "Hide" : "Show"}
-                </Text>
-              </TouchableOpacity>
-            </View>
+              <View style={styles.passwordFormRow}>
+                <TextInput
+                  style={[
+                    styles.modalInput,
+                    { flex: 1, outlineStyle: "none" } as any,
+                  ]}
+                  placeholder="Password"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!isFormPasswordVisible}
+                />
+
+                {password.length > 0 && (
+                  <TouchableOpacity
+                    onPress={() => copyToClipboard(password, "Password")}
+                    style={styles.iconBtn}
+                  >
+                    <MaterialIcons
+                      name="content-copy"
+                      size={22}
+                      color="#5f6368"
+                    />
+                  </TouchableOpacity>
+                )}
+
+                <TouchableOpacity
+                  onPress={() =>
+                    setIsFormPasswordVisible(!isFormPasswordVisible)
+                  }
+                  style={styles.formToggleBtn}
+                >
+                  <Text style={styles.formToggleText}>
+                    {isFormPasswordVisible ? "Hide" : "Show"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
           </KeyboardAvoidingView>
         </SafeAreaView>
       </Modal>
@@ -285,92 +312,51 @@ export default function PasswordsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#ffffff" },
-
-  searchContainer: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    backgroundColor: '#f1f3f4', 
-    borderRadius: 24, 
-    paddingLeft: 20, 
-    paddingRight: 10, 
-    marginBottom: 15, 
-    marginHorizontal: 20, 
-    height: 48, 
-    marginTop: 10 
-  },
-  searchInput: { 
-    flex: 1, 
-    fontSize: 16, 
-    color: '#202124',
-    height: '100%' 
-  },
-  clearBtn: {
-    padding: 5,
-  },
-  
-  listContainer: { paddingBottom: 80, paddingHorizontal: 16 },
-
-  card: {
-    backgroundColor: "#e8f0fe",
-    borderRadius: 12,
-    padding: 18,
-    marginBottom: 12,
-    elevation: 1,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    shadowOffset: { width: 0, height: 1 },
-  },
-
-  cardHeader: {
+  container: { flex: 1, backgroundColor: "#ffffff", paddingTop: 10 },
+  controlsHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-start",
+    alignItems: "center",
+    marginHorizontal: 20,
     marginBottom: 10,
   },
-  cardTitle: {
-    fontWeight: "800",
-    fontSize: 18,
-    color: "#202124",
-    flex: 1,
-    marginRight: 10,
+  sortGroup: {
+    flexDirection: "row",
+    backgroundColor: "#f1f3f4",
+    borderRadius: 20,
+    padding: 3,
   },
-  cardHeaderRight: { flexDirection: "row", alignItems: "center" },
-  dateText: {
-    fontSize: 12,
-    color: "#5f6368",
-    marginRight: 10,
-    fontWeight: "600",
+  sortBtn: { paddingVertical: 6, paddingHorizontal: 15, borderRadius: 18 },
+  sortBtnActive: {
+    backgroundColor: "#ffffff",
+    elevation: 1,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 1 },
   },
-  iconButton: { padding: 4 },
-
-  cardBody: {
-    fontSize: 15,
-    color: "#3c4043",
-    marginBottom: 6,
-    fontWeight: "500",
-  },
-
-  passwordRow: {
+  sortText: { fontSize: 14, color: "#5f6368", fontWeight: "bold" },
+  sortTextActive: { color: "#1a73e8" },
+  searchContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 2,
-    marginBottom: 5,
+    backgroundColor: "#f1f3f4",
+    borderRadius: 24,
+    paddingLeft: 20,
+    paddingRight: 10,
+    marginBottom: 15,
+    marginHorizontal: 20,
+    height: 48,
   },
-  toggleBtn: {
-    marginLeft: 10,
-    backgroundColor: "#ffffff",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  toggleText: { fontSize: 12, color: "#1a73e8", fontWeight: "bold" },
+  searchInput: { flex: 1, fontSize: 16, color: "#202124", height: "100%" },
+  clearBtn: { padding: 5 },
+  listContainer: { paddingBottom: 80, paddingHorizontal: 16 },
 
+  // V3: FAB moved upwards
   fab: {
     position: "absolute",
-    bottom: 20,
-    right: 20,
+    bottom: 60,
+    right: 30,
     backgroundColor: "#1a73e8",
     width: 60,
     height: 60,
@@ -381,7 +367,6 @@ const styles = StyleSheet.create({
   },
 
   modalContainer: { flex: 1, padding: 20 },
-
   modalHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -394,7 +379,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontWeight: "bold",
   },
-
   headerRightControls: { flexDirection: "row", alignItems: "center" },
   modalDeleteBtn: {
     padding: 8,
@@ -409,14 +393,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   saveText: { fontSize: 16, color: "#ffffff", fontWeight: "bold" },
-
   modalHeaderTitle: {
     fontSize: 24,
     fontWeight: "900",
     color: "#202124",
     marginBottom: 30,
   },
-
   inputWrapper: {
     backgroundColor: "#ffffff",
     borderRadius: 8,
@@ -429,7 +411,6 @@ const styles = StyleSheet.create({
     color: "#202124",
     fontWeight: "500",
   },
-
   passwordFormRow: {
     backgroundColor: "#ffffff",
     flexDirection: "row",
@@ -439,11 +420,13 @@ const styles = StyleSheet.create({
     paddingLeft: 15,
     paddingRight: 5,
   },
+  iconBtn: { paddingHorizontal: 10 },
   formToggleBtn: {
     backgroundColor: "#f1f3f4",
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
+    marginLeft: 5,
   },
   formToggleText: { color: "#1a73e8", fontWeight: "bold", fontSize: 14 },
 });
