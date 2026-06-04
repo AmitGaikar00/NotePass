@@ -209,7 +209,7 @@ export default function PasswordsScreen() {
         <SafeAreaView style={{ flex: 1, backgroundColor: "#e8f0fe" }}>
           <KeyboardAvoidingView
             style={styles.modalContainer}
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
           >
             <View style={styles.modalHeader}>
               <TouchableOpacity onPress={() => setModalVisible(false)}>

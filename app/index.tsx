@@ -373,7 +373,7 @@ export default function NotesScreen() {
         <SafeAreaView style={{ flex: 1, backgroundColor: selectedColor }}>
           <KeyboardAvoidingView
             style={styles.modalContainer}
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
           >
             <View style={styles.modalHeader}>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
@@ -409,7 +409,7 @@ export default function NotesScreen() {
             </View>
 
             <ScrollView
-              style={{ flex: 1 }}
+              style={{ flex: 1, paddingHorizontal: 20 }}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
               onTouchStart={() => setActiveMenu("none")}
@@ -688,12 +688,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     elevation: 5,
   },
-  modalContainer: { flex: 1, padding: 20 },
+  modalContainer: { flex: 1 },
   modalHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 25,
+    marginBottom: 20,
+    paddingHorizontal: 20,
+    paddingTop: 20,
   },
   headerRightControls: { flexDirection: "row", alignItems: "center" },
   modalActionBtn: {
@@ -766,9 +768,7 @@ const styles = StyleSheet.create({
     // backgroundColor: "#ffffff",
     borderTopWidth: 1,
     borderColor: "#e0e0e0",
-    marginHorizontal: -20,
-    marginBottom: -20,
-    paddingBottom: Platform.OS === "ios" ? 25 : 10,
+    paddingBottom: Platform.OS === "ios" ? 15 : 10,
   },
   secondaryMenu: {
     flexDirection: "row",
