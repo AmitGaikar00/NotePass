@@ -14,6 +14,7 @@ export default function NoteCard({ item, onEdit, onDelete, viewMode }) {
 
   const isGrid = viewMode === "grid";
   const textColor = item.textColor || "#202124";
+  const displayDate = item.updatedAt || item.id;
 
   return (
     <TouchableOpacity
@@ -93,7 +94,7 @@ export default function NoteCard({ item, onEdit, onDelete, viewMode }) {
             style={styles.iconSpacing}
           />
         )}
-        <Text style={styles.dateText}>{formatDate(item.id)}</Text>
+        <Text style={styles.dateText}>{formatDate(displayDate)}</Text>
         <TouchableOpacity
           onPress={() => onDelete(item.id)}
           style={styles.deleteBtn}

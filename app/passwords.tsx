@@ -66,17 +66,23 @@ export default function PasswordsScreen() {
 
   const savePassword = async () => {
     if (!site || !username || !password) return;
+
+    const nowTimestamp = Date.now().toString();
+
     let updatedPasswords = editingId
       ? passwords.map((p) =>
-          p.id === editingId ? { ...p, site, username, password } : p,
+          p.id === editingId
+            ? { ...p, site, username, password, updatedAt: nowTimestamp }
+            : p,
         )
       : [
           {
-            id: Date.now().toString(),
+            id: nowTimestamp,
             site,
             username,
             password,
             isTrashed: false,
+            updatedAt: nowTimestamp,
           },
           ...passwords,
         ];
@@ -90,9 +96,16 @@ export default function PasswordsScreen() {
   };
 
   const moveToTrash = async (id) => {
+    const nowTimestamp = Date.now().toString();
+
     const updated = passwords.map((p) =>
       p.id === id
-        ? { ...p, isTrashed: true, deletedAt: Date.now().toString() }
+        ? {
+            ...p,
+            isTrashed: true,
+            deletedAt: Date.now().toString(),
+            updatedAt: nowTimestamp,
+          }
         : p,
     );
     setPasswords(updated);
@@ -112,7 +125,10 @@ export default function PasswordsScreen() {
 
   displayPasswords.sort((a, b) => {
     if (sortBy === "site") return a.site.localeCompare(b.site);
-    return b.id - a.id;
+
+    const dateA = a.updatedAt || a.id;
+    const dateB = b.updatedAt || b.id;
+    return dateB - dateA;
   });
 
   return (

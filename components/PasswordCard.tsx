@@ -12,6 +12,8 @@ export default function PasswordCard({ item, onEdit, onDelete }) {
     });
   };
 
+  const displayDate = item.updatedAt || item.id;
+
   return (
     <TouchableOpacity
       style={styles.card}
@@ -29,7 +31,7 @@ export default function PasswordCard({ item, onEdit, onDelete }) {
 
       {/* V3: Metadata moved to the bottom right */}
       <View style={styles.cardFooter}>
-        <Text style={styles.dateText}>{formatDate(item.id)}</Text>
+        <Text style={styles.dateText}>{formatDate(displayDate)}</Text>
         <TouchableOpacity
           onPress={() => onDelete(item.id)}
           style={styles.deleteBtn}

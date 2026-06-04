@@ -106,6 +106,9 @@ export default function NotesScreen() {
   const saveNote = async () => {
     if (!title && !content && checklist.length === 0 && images.length === 0)
       return;
+
+    const nowTimestamp = Date.now().toString();
+
     let updatedNotes = editingId
       ? notes.map((n) =>
           n.id === editingId
@@ -119,12 +122,13 @@ export default function NotesScreen() {
                 checklist,
                 isChecklistMode,
                 isPinned,
+                updatedAt: nowTimestamp,
               }
             : n,
         )
       : [
           {
-            id: Date.now().toString(),
+            id: nowTimestamp,
             title,
             content,
             color: selectedColor,
@@ -134,6 +138,7 @@ export default function NotesScreen() {
             isChecklistMode,
             isPinned,
             isTrashed: false,
+            updatedAt: nowTimestamp,
           },
           ...notes,
         ];
@@ -144,13 +149,16 @@ export default function NotesScreen() {
   };
 
   const moveToTrash = async (id) => {
+    const nowTimestamp = Date.now().toString();
+
     const updated = notes.map((n) =>
       n.id === id
         ? {
             ...n,
             isTrashed: true,
             isPinned: false,
-            deletedAt: Date.now().toString(),
+            deletedAt: nowTimestamp,
+            updatedAt: nowTimestamp,
           }
         : n,
     );
@@ -232,7 +240,10 @@ export default function NotesScreen() {
     if (a.isPinned && !b.isPinned) return -1;
     if (!a.isPinned && b.isPinned) return 1;
     if (sortBy === "title") return a.title.localeCompare(b.title);
-    return b.id - a.id;
+
+    const dateA = a.updatedAt || a.id;
+    const dateB = b.updatedAt || b.id;
+    return dateB - dateA;
   });
 
   return (
@@ -752,7 +763,7 @@ const styles = StyleSheet.create({
 
   // Palette Toolbar Layout Styles
   editorToolbarWrapper: {
-    backgroundColor: "#ffffff",
+    // backgroundColor: "#ffffff",
     borderTopWidth: 1,
     borderColor: "#e0e0e0",
     marginHorizontal: -20,
@@ -781,7 +792,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
-    paddingVertical: 12,
+    paddingVertical: 5,
   },
   toolbarIcon: { padding: 10, borderRadius: 12 },
   toolbarIconActive: { backgroundColor: "#e8f0fe" },
