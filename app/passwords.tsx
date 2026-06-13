@@ -4,7 +4,6 @@ import { useFocusEffect } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import React, { useCallback, useState } from "react";
 import {
-  Alert,
   FlatList,
   KeyboardAvoidingView,
   Modal,
@@ -115,7 +114,6 @@ export default function PasswordsScreen() {
 
   const copyToClipboard = async (text, fieldName) => {
     await Clipboard.setStringAsync(text);
-    Alert.alert("Copied!", `${fieldName} copied to clipboard.`);
   };
 
   let displayPasswords = passwords.filter(

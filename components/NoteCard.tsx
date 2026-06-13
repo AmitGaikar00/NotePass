@@ -2,7 +2,13 @@ import { MaterialIcons } from "@expo/vector-icons";
 import React from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-export default function NoteCard({ item, onEdit, onDelete, viewMode }) {
+export default function NoteCard({
+  item,
+  onEdit,
+  onDelete,
+  viewMode,
+  onLongPress,
+}) {
   const formatDate = (timestamp) => {
     if (!timestamp) return "";
     return new Date(parseInt(timestamp)).toLocaleDateString("en-US", {
@@ -24,6 +30,8 @@ export default function NoteCard({ item, onEdit, onDelete, viewMode }) {
         isGrid && styles.cardGrid,
       ]}
       onPress={() => onEdit(item)}
+      onLongPress={() => onLongPress(item)}
+      delayLongPress={500}
       activeOpacity={0.7}
     >
       {item.images && item.images.length > 0 && (
@@ -39,7 +47,31 @@ export default function NoteCard({ item, onEdit, onDelete, viewMode }) {
         </Text>
       </View>
 
-      {item.isChecklistMode && item.checklist ? (
+      {/* Shows the giant lock icon instead of the note content */}
+      {item.isLocked ? (
+        <View
+          style={{
+            alignItems: "center",
+            justifyContent: "center",
+            paddingVertical: 10,
+          }}
+        >
+          <MaterialIcons
+            name="lock"
+            size={32}
+            color={textColor}
+            style={{ opacity: 0.3 }}
+          />
+          <Text
+            style={[
+              styles.cardBody,
+              { color: textColor, opacity: 0.4, marginTop: 4 },
+            ]}
+          >
+            Locked Note
+          </Text>
+        </View>
+      ) : item.isChecklistMode && item.checklist ? (
         <View style={styles.checklistPreview}>
           {item.checklist.slice(0, 4).map((c) => (
             <View key={c.id} style={styles.checklistItemPreview}>
@@ -86,6 +118,14 @@ export default function NoteCard({ item, onEdit, onDelete, viewMode }) {
       )}
 
       <View style={styles.cardFooter}>
+        {item.isLocked && (
+          <MaterialIcons
+            name="lock"
+            size={16}
+            color="#ea4335"
+            style={styles.iconSpacing}
+          />
+        )}
         {item.isPinned && (
           <MaterialIcons
             name="push-pin"

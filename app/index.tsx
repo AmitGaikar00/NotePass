@@ -1,8 +1,5 @@
-import { MaterialIcons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as ImagePicker from "expo-image-picker";
-import { useFocusEffect } from "expo-router";
-import React, { useCallback, useState } from "react";
+import * as Clipboard from "expo-clipboard";
+import * as LocalAuthentication from "expo-local-authentication";
 import {
   FlatList,
   Image,
@@ -17,6 +14,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import NoteMenuModal from "../components/NoteMenuModal";
+
+import { MaterialIcons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as ImagePicker from "expo-image-picker";
+import { useFocusEffect } from "expo-router";
+import React, { useCallback, useState } from "react";
+
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { SafeAreaView } from "react-native-safe-area-context";
 import NoteCard from "../components/NoteCard";
@@ -60,6 +65,7 @@ export default function NotesScreen() {
   const [images, setImages] = useState([]);
   const [isChecklistMode, setIsChecklistMode] = useState(false);
   const [checklist, setChecklist] = useState([]);
+  const [menuNote, setMenuNote] = useState(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -90,7 +96,15 @@ export default function NotesScreen() {
     setModalVisible(true);
   };
 
-  const openEditNoteModal = (note) => {
+  const openEditNoteModal = async (note) => {
+    // ADD THIS BLOCK: Ask for Pattern/PIN if the note is locked
+    if (note.isLocked) {
+      const auth = await LocalAuthentication.authenticateAsync({
+        promptMessage: "Verify identity to open locked note",
+        fallbackLabel: "Use Pattern/PIN",
+      });
+      if (!auth.success) return; // Exit if they fail
+    }
     setTitle(note.title);
     setContent(note.content || "");
     setImages(note.images || []);
@@ -168,6 +182,20 @@ export default function NotesScreen() {
     setModalVisible(false);
   };
 
+  const toggleNoteProperty = async (id, property, value) => {
+    const nowTimestamp = Date.now().toString();
+    const updated = notes.map((n) =>
+      n.id === id ? { ...n, [property]: value, updatedAt: nowTimestamp } : n,
+    );
+    setNotes(updated);
+    await AsyncStorage.setItem("@my_notes", JSON.stringify(updated));
+  };
+
+  const handleLongPress = (note) => {
+    Keyboard.dismiss();
+    setMenuNote(note); // Opens the custom parallel menu
+  };
+
   const toggleMenu = (menuName) => {
     setActiveMenu(activeMenu === menuName ? "none" : menuName);
     Keyboard.dismiss();
@@ -208,6 +236,26 @@ export default function NotesScreen() {
       setContent(text);
     }
     setIsChecklistMode(!isChecklistMode);
+  };
+
+  const copyNoteToClipboard = async () => {
+    let textToCopy = "";
+
+    // Add the title if it exists
+    if (title) textToCopy += `${title}\n\n`;
+
+    // Handle checklist formatting or normal text
+    if (isChecklistMode) {
+      textToCopy += checklist
+        .map((c) => `${c.isChecked ? "[x]" : "[ ]"} ${c.text}`)
+        .join("\n");
+    } else {
+      textToCopy += content;
+    }
+
+    if (!textToCopy.trim()) return; // Don't copy empty notes
+
+    await Clipboard.setStringAsync(textToCopy);
   };
 
   const updateChecklistItem = (id, newProps) => {
@@ -321,6 +369,7 @@ export default function NotesScreen() {
               item={item}
               onEdit={openEditNoteModal}
               onDelete={moveToTrash}
+              onLongPress={handleLongPress}
               viewMode={viewMode}
             />
           )}
@@ -340,6 +389,7 @@ export default function NotesScreen() {
                     item={item}
                     onEdit={openEditNoteModal}
                     onDelete={moveToTrash}
+                    onLongPress={handleLongPress}
                     viewMode={viewMode}
                   />
                 ))}
@@ -353,6 +403,7 @@ export default function NotesScreen() {
                     item={item}
                     onEdit={openEditNoteModal}
                     onDelete={moveToTrash}
+                    onLongPress={handleLongPress}
                     viewMode={viewMode}
                   />
                 ))}
@@ -360,6 +411,14 @@ export default function NotesScreen() {
           </View>
         </ScrollView>
       )}
+
+      {/* V5: Clean, modular component call */}
+      <NoteMenuModal
+        note={menuNote}
+        onClose={() => setMenuNote(null)}
+        onToggleProperty={toggleNoteProperty}
+        onDelete={moveToTrash}
+      />
 
       <TouchableOpacity style={styles.fab} onPress={openNewNoteModal}>
         <MaterialIcons name="add" size={32} color="white" />
@@ -588,6 +647,18 @@ export default function NotesScreen() {
                     color="#5f6368"
                   />
                 </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.toolbarIcon}
+                  onPress={copyNoteToClipboard}
+                >
+                  <MaterialIcons
+                    name="content-copy"
+                    size={24}
+                    color="#5f6368"
+                  />
+                </TouchableOpacity>
+
                 <TouchableOpacity
                   style={[
                     styles.toolbarIcon,
@@ -735,7 +806,7 @@ const styles = StyleSheet.create({
   },
 
   // Image Preview Inline Styles
-  imageScroll: { paddingHorizontal: 5, marginBottom: 15 },
+  imageScroll: { paddingHorizontal: 5, marginBottom: 15 , maxHeight: 190},
   imageWrapper: { position: "relative", marginRight: 15 },
   editorImage: {
     width: 180,
