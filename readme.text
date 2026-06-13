@@ -1,5 +1,7 @@
 NotePass - Release Notes & Changelog
 
+V5.0 - The Lock Notes feature
+
 V4.0 - The Rich Editor Update (Current)
   * Native Rich Editor Toolbar: Replaced basic text inputs with a dynamic, native bottom toolbar.
   * Image Support: Integrated expo-image-picker to allow users to attach multiple photos inline with their notes. Images render as beautiful cover thumbnails on the home screen grid.
