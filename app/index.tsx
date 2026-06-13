@@ -17,6 +17,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { SafeAreaView } from "react-native-safe-area-context";
 import NoteCard from "../components/NoteCard";
 
@@ -370,7 +371,10 @@ export default function NotesScreen() {
         animationType="slide"
         presentationStyle="pageSheet"
       >
-        <SafeAreaView style={{ flex: 1, backgroundColor: selectedColor }}>
+        <SafeAreaView
+          style={{ flex: 1, backgroundColor: selectedColor }}
+          edges={["top"]}
+        >
           <KeyboardAvoidingView
             style={styles.modalContainer}
             behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -408,10 +412,13 @@ export default function NotesScreen() {
               </View>
             </View>
 
-            <ScrollView
+            <KeyboardAwareScrollView
               style={{ flex: 1, paddingHorizontal: 20 }}
+              contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
+              enableOnAndroid={true}
+              extraScrollHeight={20}
               onTouchStart={() => setActiveMenu("none")}
             >
               <TextInput
@@ -532,9 +539,10 @@ export default function NotesScreen() {
                   onChangeText={setContent}
                   onTouchStart={() => setActiveMenu("none")}
                   multiline
+                  scrollEnabled={false}
                 />
               )}
-            </ScrollView>
+            </KeyboardAwareScrollView>
 
             <View style={styles.editorToolbarWrapper}>
               {activeMenu === "bg" && (
@@ -768,7 +776,7 @@ const styles = StyleSheet.create({
     // backgroundColor: "#ffffff",
     borderTopWidth: 1,
     borderColor: "#e0e0e0",
-    paddingBottom: Platform.OS === "ios" ? 15 : 10,
+    paddingBottom: Platform.OS === "ios" ? 10 : 5,
   },
   secondaryMenu: {
     flexDirection: "row",
